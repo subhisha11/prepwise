@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     app_name: str = "PrepWise API"
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
-    database_url: str = "sqlite+aiosqlite:///./prepwise.db"
+    database_url: str = str
     secret_key: str = "dev-only-change-this"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
