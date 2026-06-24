@@ -1,11 +1,13 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models import User
 
 bearer = HTTPBearer(auto_error=False)
+
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
@@ -14,7 +16,7 @@ async def get_current_user(
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sign in required"
+            detail="Sign in required",
         )
 
     try:
@@ -26,7 +28,16 @@ async def get_current_user(
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid session"
+            detail="Invalid session",
         )
 
     return user
+
+
+def require_role(*roles: str):
+    async def checker(user: User = Depends(get_current_user)) -> User:
+        if user.role not in roles:
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return user
+
+    return checker
