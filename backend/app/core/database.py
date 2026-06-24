@@ -7,15 +7,29 @@ engine = create_async_engine(settings.database_url, echo=False)
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with SessionLocal() as session:
-        yield session
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Sign in required")
 
+    try:
+        payload = decode_access_token(credentials.credentials)
 
-async def init_db() -> None:
-    from app.models.base import Base
-    from app.models import entities  # noqa: F401
+        print("TOKEN PAYLOAD:", payload)
+        print("SUB:", payload.get("sub"))
+        print("SUB TYPE:", type(payload.get("sub")))
 
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
+        user = await db.get(User, payload["sub"])
 
+        print("USER FOUND:", user)
+
+    except Exception as e:
+        print("AUTH ERROR:", str(e))
+        user = None
+
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    return user
