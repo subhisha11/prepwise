@@ -1,27 +1,14 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
+
 from app.api.routes import auth, coding, dashboard, interview, resume, roadmap
 from app.core.config import settings
 from app.core.database import SessionLocal, init_db
-from app.seed import seed_data
-from sqlalchemy import select
 from app.models import User
-from app.core.database import SessionLocal
-
-@app.get("/debug/users")
-async def debug_users():
-    async with SessionLocal() as db:
-        users = (await db.execute(select(User))).scalars().all()
-
-        return [
-            {
-                "id": user.id,
-                "email": user.email,
-                "name": user.full_name
-            }
-            for user in users
-        ]
+from app.seed import seed_data
 
 
 @asynccontextmanager
@@ -38,6 +25,7 @@ app = FastAPI(
     description="Adaptive AI placement mentoring API",
     lifespan=lifespan,
 )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -49,11 +37,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for route in [auth.router, dashboard.router, resume.router, roadmap.router, coding.router, interview.router]:
+
+@app.get("/debug/users")
+async def debug_users():
+    async with SessionLocal() as db:
+        users = (await db.execute(select(User))).scalars().all()
+
+        return [
+            {
+                "id": user.id,
+                "email": user.email,
+                "name": user.full_name,
+            }
+            for user in users
+        ]
+
+
+for route in [
+    auth.router,
+    dashboard.router,
+    resume.router,
+    roadmap.router,
+    coding.router,
+    interview.router,
+]:
     app.include_router(route, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health", tags=["system"])
 async def health():
-    return {"status": "healthy", "service": settings.app_name}
-
+    return {
+        "status": "healthy",
+        "service": settings.app_name,
+    }
