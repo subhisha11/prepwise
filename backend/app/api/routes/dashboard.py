@@ -1,3 +1,4 @@
+from distro import name
 from fastapi import APIRouter, Depends
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,7 +33,10 @@ async def dashboard(user: User = Depends(get_current_user), db: AsyncSession = D
         "interview_score": interview.score if interview and interview.score else 68,
     })
     return {
-        "user": {"name": user.full_name, "target_role": user.target_role},
+        "user": {
+            "name": "Guest User",
+            "target_role": "Student"
+        },
         "metrics": {
             "ats_score": resume.ats_score if resume else 78,
             "readiness_score": workflow["readiness_score"],

@@ -20,7 +20,7 @@ type Dashboard = {
 };
 
 const fallback: Dashboard = {
-  user: { name: "Aarav Sharma", target_role: "Backend Engineer" },
+  user: { name: "Loading. . .", target_role: "Student" },
   metrics: { ats_score: 84, readiness_score: 72, coding_accuracy: 68, interview_score: 74, roadmap_progress: 36 },
   skill_gaps: ["Docker", "System Design", "Redis", "AWS"],
   recommendations: ["Solve two dynamic programming patterns this week.", "Build a Dockerized FastAPI service.", "Practice one system-design walkthrough."],
@@ -38,7 +38,12 @@ const fallback: Dashboard = {
 };
 
 export default function DashboardPage() {
-  const { data = fallback } = useQuery({ queryKey: ["dashboard"], queryFn: () => api<Dashboard>("/dashboard"), placeholderData: fallback });
+  const { data,isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: () => api<Dashboard>("/dashboard"), placeholderData: fallback });
+  if (isLoading || !data) {
+    return (
+       <div className="p-6">Loading dashboard...</div>
+    );
+  }
   const firstName = data.user.name.split(" ")[0];
   return (
     <div className="mx-auto max-w-[1440px]">
