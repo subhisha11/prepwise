@@ -70,3 +70,15 @@ async def health():
         "status": "healthy",
         "service": settings.app_name,
     }
+@app.get("/debug/users-count")
+async def users_count():
+    async with SessionLocal() as db:
+        from sqlalchemy import select
+        from app.models import User
+
+        users = (await db.execute(select(User))).scalars().all()
+
+        return {
+            "count": len(users),
+            "emails": [u.email for u in users]
+        }
