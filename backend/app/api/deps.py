@@ -5,30 +5,28 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models import User
 
-
 bearer = HTTPBearer(auto_error=False)
-
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: AsyncSession = Depends(get_db),
 ) -> User:
     if not credentials:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sign in required")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sign in required"
+        )
+
     try:
         payload = decode_access_token(credentials.credentials)
         user = await db.get(User, payload["sub"])
     except (ValueError, KeyError):
         user = None
+
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid session"
+        )
+
     return user
-
-
-def require_role(*roles: str):
-    async def checker(user: User = Depends(get_current_user)) -> User:
-        if user.role not in roles:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
-        return user
-    return checker
-
