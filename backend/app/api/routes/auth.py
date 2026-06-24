@@ -26,7 +26,7 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    return TokenResponse(access_token=create_access_token(user.id, user.role))
+    return TokenResponse(access_token=create_access_token(str(user.id), user.role))
 
 
 @router.post("/login", response_model=TokenResponse)
