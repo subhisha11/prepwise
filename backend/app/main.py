@@ -5,6 +5,23 @@ from app.api.routes import auth, coding, dashboard, interview, resume, roadmap
 from app.core.config import settings
 from app.core.database import SessionLocal, init_db
 from app.seed import seed_data
+from sqlalchemy import select
+from app.models import User
+from app.core.database import SessionLocal
+
+@app.get("/debug/users")
+async def debug_users():
+    async with SessionLocal() as db:
+        users = (await db.execute(select(User))).scalars().all()
+
+        return [
+            {
+                "id": user.id,
+                "email": user.email,
+                "name": user.full_name
+            }
+            for user in users
+        ]
 
 
 @asynccontextmanager
