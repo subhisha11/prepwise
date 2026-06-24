@@ -10,7 +10,11 @@ class Settings(BaseSettings):
     secret_key: str = "dev-only-change-this"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 1440
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "https://prepwise-seven-sand.vercel.app",
+        "https://prepwise-git-main-subhishachintadas-projects.vercel.app",
+    ]
     ai_api_key: str = ""
     ai_base_url: str = "https://api.openai.com/v1"
     ai_model: str = "gpt-4o-mini"
