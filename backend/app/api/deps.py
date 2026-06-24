@@ -21,8 +21,23 @@ async def get_current_user(
 
     try:
         payload = decode_access_token(credentials.credentials)
+
+        print("=" * 50)
+        print("PAYLOAD:", payload)
+        print("SUB:", payload.get("sub"))
+        print("SUB TYPE:", type(payload.get("sub")))
+        print("=" * 50)
+
         user = await db.get(User, payload["sub"])
-    except (ValueError, KeyError):
+
+        print("=" * 50)
+        print("USER FOUND:", user)
+        print("=" * 50)
+
+    except Exception as e:
+        print("=" * 50)
+        print("AUTH ERROR:", str(e))
+        print("=" * 50)
         user = None
 
     if not user or not user.is_active:
@@ -37,7 +52,10 @@ async def get_current_user(
 def require_role(*roles: str):
     async def checker(user: User = Depends(get_current_user)) -> User:
         if user.role not in roles:
-            raise HTTPException(status_code=403, detail="Insufficient permissions")
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
         return user
 
     return checker
